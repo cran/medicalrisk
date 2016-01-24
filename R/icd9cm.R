@@ -3,6 +3,9 @@
 #' Function that generates a data frame linking ICD-9-CM codes to the Charlson
 #' comorbidity categories using the Deyo mapping.
 #' 
+#' NOTE: The input vector of ICD-9-CM codes must be unique, because the output dataframe
+#' uses the ICD-9-CM code as row.name.
+#' 
 #' Uses regular expressions created from the paper by Deyo in 1992.
 #' 
 #' ICD-9-CM codes must have periods removed.  Diagnostic codes are prefixed with 
@@ -59,6 +62,9 @@ icd9cm_charlson_deyo <- function(icd9) {
 #' Function that creates a dataframe which links ICD-9-CM codes to the Charlson 
 #' comorbidity categories using the Romano mapping.
 #' 
+#' NOTE: The input vector of ICD-9-CM codes must be unique, because the output dataframe
+#' uses the ICD-9-CM code as row.name.
+#' 
 #' Uses regular expressions created from the paper by Romano in 1993.
 #' 
 #' ICD-9-CM codes must have periods removed.  Diagnostic codes are prefixed with 
@@ -114,6 +120,9 @@ icd9cm_charlson_romano <- function(icd9) {
 #' 
 #' Function that creates a dataframe that links ICD-9-CM codes to the Charlson comorbidity 
 #' categories using Quan's method.
+#' 
+#' NOTE: The input vector of ICD-9-CM codes must be unique, because the output dataframe
+#' uses the ICD-9-CM code as row.name.
 #' 
 #' Uses regular expressions created from the paper by Quan in 2005.
 #' 

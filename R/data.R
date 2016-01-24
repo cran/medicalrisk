@@ -42,7 +42,7 @@ NULL
 #' @name icd9cm_list
 #' @usage icd9cm_list
 #' @format A string vector
-#' @references 1. \url{http://www.cms.gov/Medicare/Coding/ICD9ProviderDiagnosticCodes/}
+#' @references 1. \url{https://www.cms.gov/Medicare/Coding/ICD9ProviderDiagnosticCodes/codes.html}
 #'   
 #' @keywords datasets
 #' @examples
