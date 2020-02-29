@@ -18,4 +18,3 @@ Values for calculating RSI for in-hospital mortality.
     Anesthesiology. 2010 Nov;113(5):1026-37. doi: 10.1097/ALN.0b013e3181f79a8d.
 \url{http://my.clevelandclinic.org/anesthesiology/outcomes-research/risk-stratification-index.aspx}
 }
-

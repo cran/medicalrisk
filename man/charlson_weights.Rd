@@ -45,4 +45,3 @@ charlson_weights["dementia"]
 \code{\link{melt_icd9list}}
 }
 \keyword{datasets}
-

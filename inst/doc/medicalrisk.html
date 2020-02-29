@@ -4,46 +4,297 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <meta name="author" content="Patrick McCormick patrick.mccormick@alum.mit.edu" />
 
-<meta name="date" content="2016-01-23" />
+<meta name="date" content="2020-02-28" />
 
 <title>medicalrisk: Calculating risk and comorbidities from ICD-9-CM codes</title>
 
 
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; }
-code > span.dt { color: #902000; }
-code > span.dv { color: #40a070; }
-code > span.bn { color: #40a070; }
-code > span.fl { color: #40a070; }
-code > span.ch { color: #4070a0; }
-code > span.st { color: #4070a0; }
-code > span.co { color: #60a0b0; font-style: italic; }
-code > span.ot { color: #007020; }
-code > span.al { color: #ff0000; font-weight: bold; }
-code > span.fu { color: #06287e; }
-code > span.er { color: #ff0000; font-weight: bold; }
-</style>
-<style type="text/css">
-  pre:not([class]) {
-    background-color: white;
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
   }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
-<link href="data:text/css,body%20%7B%0A%20%20background%2Dcolor%3A%20%23fff%3B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20max%2Dwidth%3A%20700px%3B%0A%20%20overflow%3A%20visible%3B%0A%20%20padding%2Dleft%3A%202em%3B%0A%20%20padding%2Dright%3A%202em%3B%0A%20%20font%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0A%20%20font%2Dsize%3A%2014px%3B%0A%20%20line%2Dheight%3A%201%2E35%3B%0A%7D%0A%0A%23header%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0A%0A%23TOC%20%7B%0A%20%20clear%3A%20both%3B%0A%20%20margin%3A%200%200%2010px%2010px%3B%0A%20%20padding%3A%204px%3B%0A%20%20width%3A%20400px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20border%2Dradius%3A%205px%3B%0A%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20font%2Dsize%3A%2013px%3B%0A%20%20line%2Dheight%3A%201%2E3%3B%0A%7D%0A%20%20%23TOC%20%2Etoctitle%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%20%20font%2Dsize%3A%2015px%3B%0A%20%20%20%20margin%2Dleft%3A%205px%3B%0A%20%20%7D%0A%0A%20%20%23TOC%20ul%20%7B%0A%20%20%20%20padding%2Dleft%3A%2040px%3B%0A%20%20%20%20margin%2Dleft%3A%20%2D1%2E5em%3B%0A%20%20%20%20margin%2Dtop%3A%205px%3B%0A%20%20%20%20margin%2Dbottom%3A%205px%3B%0A%20%20%7D%0A%20%20%23TOC%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dleft%3A%20%2D2em%3B%0A%20%20%7D%0A%20%20%23TOC%20li%20%7B%0A%20%20%20%20line%2Dheight%3A%2016px%3B%0A%20%20%7D%0A%0Atable%20%7B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dcolor%3A%20%23DDDDDD%3B%0A%20%20border%2Dstyle%3A%20outset%3B%0A%20%20border%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0A%20%20border%2Dwidth%3A%202px%3B%0A%20%20padding%3A%205px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%20%20line%2Dheight%3A%2018px%3B%0A%20%20padding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0A%20%20border%2Dleft%2Dstyle%3A%20none%3B%0A%20%20border%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Ap%20%7B%0A%20%20margin%3A%200%2E5em%200%3B%0A%7D%0A%0Ablockquote%20%7B%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20padding%3A%200%2E25em%200%2E75em%3B%0A%7D%0A%0Ahr%20%7B%0A%20%20border%2Dstyle%3A%20solid%3B%0A%20%20border%3A%20none%3B%0A%20%20border%2Dtop%3A%201px%20solid%20%23777%3B%0A%20%20margin%3A%2028px%200%3B%0A%7D%0A%0Adl%20%7B%0A%20%20margin%2Dleft%3A%200%3B%0A%7D%0A%20%20dl%20dd%20%7B%0A%20%20%20%20margin%2Dbottom%3A%2013px%3B%0A%20%20%20%20margin%2Dleft%3A%2013px%3B%0A%20%20%7D%0A%20%20dl%20dt%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%7D%0A%0Aul%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%7D%0A%20%20ul%20li%20%7B%0A%20%20%20%20list%2Dstyle%3A%20circle%20outside%3B%0A%20%20%7D%0A%20%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dbottom%3A%200%3B%0A%20%20%7D%0A%0Apre%2C%20code%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20color%3A%20%23333%3B%0A%7D%0Apre%20%7B%0A%20%20white%2Dspace%3A%20pre%2Dwrap%3B%20%20%20%20%2F%2A%20Wrap%20long%20lines%20%2A%2F%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20margin%3A%205px%200px%2010px%200px%3B%0A%20%20padding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Acode%20%7B%0A%20%20font%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0A%20%20font%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0A%20%20padding%3A%202px%200px%3B%0A%7D%0A%0Adiv%2Efigure%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0A%20%20background%2Dcolor%3A%20%23FFFFFF%3B%0A%20%20padding%3A%202px%3B%0A%20%20border%3A%201px%20solid%20%23DDDDDD%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20margin%3A%200%205px%3B%0A%7D%0A%0Ah1%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%20%20font%2Dsize%3A%2035px%3B%0A%20%20line%2Dheight%3A%2040px%3B%0A%7D%0A%0Ah2%20%7B%0A%20%20border%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20padding%2Dbottom%3A%202px%3B%0A%20%20font%2Dsize%3A%20145%25%3B%0A%7D%0A%0Ah3%20%7B%0A%20%20border%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20font%2Dsize%3A%20120%25%3B%0A%7D%0A%0Ah4%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0A%20%20margin%2Dleft%3A%208px%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Ah5%2C%20h6%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23ccc%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Aa%20%7B%0A%20%20color%3A%20%230033dd%3B%0A%20%20text%2Ddecoration%3A%20none%3B%0A%7D%0A%20%20a%3Ahover%20%7B%0A%20%20%20%20color%3A%20%236666ff%3B%20%7D%0A%20%20a%3Avisited%20%7B%0A%20%20%20%20color%3A%20%23800080%3B%20%7D%0A%20%20a%3Avisited%3Ahover%20%7B%0A%20%20%20%20color%3A%20%23BB00BB%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%0A%2F%2A%20Class%20described%20in%20https%3A%2F%2Fbenjeffrey%2Ecom%2Fposts%2Fpandoc%2Dsyntax%2Dhighlighting%2Dcss%0A%20%20%20Colours%20from%20https%3A%2F%2Fgist%2Egithub%2Ecom%2Frobsimmons%2F1172277%20%2A%2F%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Keyword%20%2A%2F%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%2F%2A%20DataType%20%2A%2F%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%2F%2A%20DecVal%20%28decimal%20values%29%20%2A%2F%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20BaseN%20%2A%2F%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Float%20%2A%2F%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Char%20%2A%2F%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20String%20%2A%2F%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%2F%2A%20Comment%20%2A%2F%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%2F%2A%20OtherToken%20%2A%2F%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20AlertToken%20%2A%2F%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Function%20calls%20%2A%2F%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%2F%2A%20ErrorTok%20%2A%2F%0A%0A" rel="stylesheet" type="text/css" />
+
 
 </head>
 
@@ -51,11 +302,11 @@ code > span.er { color: #ff0000; font-weight: bold; }
 
 
 
-<div id="header">
-<h1 class="title">medicalrisk: Calculating risk and comorbidities from ICD-9-CM codes</h1>
-<h4 class="author"><em>Patrick McCormick <a href="mailto:patrick.mccormick@alum.mit.edu">patrick.mccormick@alum.mit.edu</a></em></h4>
-<h4 class="date"><em>2016-01-23</em></h4>
-</div>
+
+<h1 class="title toc-ignore">medicalrisk: Calculating risk and comorbidities from ICD-9-CM codes</h1>
+<h4 class="author">Patrick McCormick <a href="mailto:patrick.mccormick@alum.mit.edu" class="email">patrick.mccormick@alum.mit.edu</a></h4>
+<h4 class="date">2020-02-28</h4>
+
 
 
 <div id="introduction" class="section level2">
@@ -69,16 +320,16 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="working-with-icd-9-cm-data" class="section level2">
 <h2>Working with ICD-9-CM Data</h2>
 <p>In order to demonstrate this package, this package includes data on 100 patients from the <a href="http://healthvermont.gov/research/hospital-utilization/RECENT_PU_FILES.aspx">Vermont Uniform Hospital Discharge Data Set for 2011, Inpatient</a>.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(medicalrisk)
-<span class="kw">library</span>(plyr)
-<span class="kw">data</span>(vt_inp_sample)
-x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <span class="kw">c</span>(<span class="st">'id'</span>))
-<span class="kw">cat</span>(<span class="st">&quot;average count of ICD codes per patient is: &quot;</span>, <span class="kw">mean</span>(x$freq))</code></pre>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(medicalrisk)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">library</span>(plyr)</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">data</span>(vt_inp_sample)</span>
+<span id="cb1-4"><a href="#cb1-4"></a>x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <span class="kw">c</span>(<span class="st">&#39;id&#39;</span>))</span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">cat</span>(<span class="st">&quot;average count of ICD codes per patient is: &quot;</span>, <span class="kw">mean</span>(x<span class="op">$</span>freq))</span></code></pre></div>
 <pre><code>## average count of ICD codes per patient is:  11.52</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">y &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <span class="kw">c</span>(<span class="st">'icd9cm'</span>))</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(knitr)
-<span class="kw">kable</span>(<span class="kw">head</span>(y[<span class="kw">order</span>(-y$freq),], <span class="dt">n=</span><span class="dv">5</span>), <span class="dt">row.names=</span>F,
-      <span class="dt">caption=</span><span class="st">'Top 5 most popular ICD-9-CM codes in this dataset'</span>)</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>y &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <span class="kw">c</span>(<span class="st">&#39;icd9cm&#39;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">library</span>(knitr)</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="kw">kable</span>(<span class="kw">head</span>(y[<span class="kw">order</span>(<span class="op">-</span>y<span class="op">$</span>freq),], <span class="dt">n=</span><span class="dv">5</span>), <span class="dt">row.names=</span>F,</span>
+<span id="cb4-3"><a href="#cb4-3"></a>      <span class="dt">caption=</span><span class="st">&#39;Top 5 most popular ICD-9-CM codes in this dataset&#39;</span>)</span></code></pre></div>
 <table>
 <caption>Top 5 most popular ICD-9-CM codes in this dataset</caption>
 <thead>
@@ -123,16 +374,18 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 <li>icd9cm_elixhauser_quan</li>
 <li>icd9cm_rcri</li>
 </ul>
-<p>“Charlson” refers to the Charlson Comorbidity Index<span class="citation">(Charlson et al. 1987)</span>.<br />The names “Deyo”<span class="citation">(Deyo, Cherkin, and Ciol 1992)</span>, “Romano”<span class="citation">(Romano, Roos, and Jollis 1993)</span>, and “Quan”<span class="citation">(Quan et al. 2005)</span> refer to the primary authors of different methods of determining Charlson comorbidities from ICD-9-CM codes.</p>
-<p>“Elixhauser” refers to the Elixhauser comorbidity map, which is a more detailed list than Charlson. “AHRQ37” is an adapation of the AHRQ version 37 software<span class="citation">(Agency for Healthcare Research &amp; Quality 2013)</span>.<br />“Quan” refers to the same paper by Quan mentioned above.</p>
+<p>“Charlson” refers to the Charlson Comorbidity Index<span class="citation">(Charlson et al. 1987)</span>.<br />
+The names “Deyo”<span class="citation">(Deyo, Cherkin, and Ciol 1992)</span>, “Romano”<span class="citation">(Romano, Roos, and Jollis 1993)</span>, and “Quan”<span class="citation">(Quan et al. 2005)</span> refer to the primary authors of different methods of determining Charlson comorbidities from ICD-9-CM codes.</p>
+<p>“Elixhauser” refers to the Elixhauser comorbidity map, which is a more detailed list than Charlson. “AHRQ37” is an adapation of the AHRQ version 37 software<span class="citation">(Agency for Healthcare Research &amp; Quality 2013)</span>.<br />
+“Quan” refers to the same paper by Quan mentioned above.</p>
 <p>“RCRI” is the Revised Cardiac Risk Index<span class="citation">(Lee et al. 1999)</span> set of categories using a method published by Boersma<span class="citation">(Boersma et al. 2005)</span>.</p>
 <p>For example, the #5 ICD-9-CM code above is D25000, or “250.00”, which is for “Diabetes Mellitus Unspecified Type”. Here’s what happens when that code is passed to a few of the mapping functions listed above:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">kable</span>(
-  <span class="kw">icd9cm_charlson_quan</span>(<span class="kw">c</span>(<span class="st">'D25000'</span>)))</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">kable</span>(</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="kw">icd9cm_charlson_quan</span>(<span class="kw">c</span>(<span class="st">&#39;D25000&#39;</span>)))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
-<th align="left"></th>
+<th></th>
 <th align="left">mi</th>
 <th align="left">chf</th>
 <th align="left">perivasc</th>
@@ -146,7 +399,7 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 <th align="left">dmcx</th>
 <th align="left">para</th>
 <th align="left">renal</th>
-<th align="left">tumor</th>
+<th align="center">tumor</th>
 <th align="left">modliver</th>
 <th align="left">mets</th>
 <th align="left">aids</th>
@@ -154,7 +407,7 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">D25000</td>
+<td>D25000</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -168,19 +421,19 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 </tr>
 </tbody>
 </table>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">kable</span>(
-  <span class="kw">icd9cm_elixhauser_ahrq37</span>(<span class="kw">c</span>(<span class="st">'D25000'</span>)))</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">kable</span>(</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="kw">icd9cm_elixhauser_ahrq37</span>(<span class="kw">c</span>(<span class="st">&#39;D25000&#39;</span>)))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
-<th align="left"></th>
+<th></th>
 <th align="left">chf</th>
 <th align="left">arrhythmia</th>
 <th align="left">valve</th>
@@ -200,7 +453,7 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 <th align="left">aids</th>
 <th align="left">lymph</th>
 <th align="left">mets</th>
-<th align="left">tumor</th>
+<th align="center">tumor</th>
 <th align="left">rheum</th>
 <th align="left">coag</th>
 <th align="left">obese</th>
@@ -216,7 +469,7 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">D25000</td>
+<td>D25000</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -236,7 +489,7 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -251,12 +504,12 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 </tr>
 </tbody>
 </table>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">kable</span>(
-  <span class="kw">icd9cm_rcri</span>(<span class="kw">c</span>(<span class="st">'D25000'</span>)))</code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">kable</span>(</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">icd9cm_rcri</span>(<span class="kw">c</span>(<span class="st">&#39;D25000&#39;</span>)))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
-<th align="left"></th>
+<th></th>
 <th align="left">chf</th>
 <th align="left">cvd</th>
 <th align="left">dm</th>
@@ -266,7 +519,7 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">D25000</td>
+<td>D25000</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
@@ -277,15 +530,15 @@ x &lt;-<span class="st"> </span><span class="kw">count</span>(vt_inp_sample, <sp
 </table>
 <p>For each of these maps the “dm” column becomes TRUE.</p>
 <p>The most efficient way to use these maps for a set of patients is to generate a single map for all ICD-9-CM codes in the set and then apply that map to each patient. Here’s an example that generates a comorbidity matrix for the first five patients in the Vermont dataset:</p>
-<pre class="sourceCode r"><code class="sourceCode r">cases &lt;-<span class="st"> </span>vt_inp_sample[vt_inp_sample$id %in%<span class="st"> </span><span class="dv">1</span>:<span class="dv">5</span>, <span class="kw">c</span>(<span class="st">'id'</span>,<span class="st">'icd9cm'</span>)]
-cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases, <span class="kw">icd9cm_charlson_quan</span>(<span class="kw">levels</span>(cases$icd9cm)), 
-   <span class="dt">by.x=</span><span class="st">&quot;icd9cm&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;row.names&quot;</span>, <span class="dt">all.x=</span><span class="ot">TRUE</span>)
- 
-<span class="co"># generate crude comorbidity summary for each patient</span>
-<span class="kw">kable</span>(
-  <span class="kw">ddply</span>(cases_with_cm, .(id), 
-   function(x) { <span class="kw">data.frame</span>(<span class="kw">lapply</span>(x[,<span class="dv">3</span>:<span class="kw">ncol</span>(x)], any)) }),
-  <span class="dt">row.names=</span>F)</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>cases &lt;-<span class="st"> </span>vt_inp_sample[vt_inp_sample<span class="op">$</span>id <span class="op">%in%</span><span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="kw">c</span>(<span class="st">&#39;id&#39;</span>,<span class="st">&#39;icd9cm&#39;</span>)]</span>
+<span id="cb8-2"><a href="#cb8-2"></a>cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases, <span class="kw">icd9cm_charlson_quan</span>(<span class="kw">levels</span>(cases<span class="op">$</span>icd9cm)), </span>
+<span id="cb8-3"><a href="#cb8-3"></a>   <span class="dt">by.x=</span><span class="st">&quot;icd9cm&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;row.names&quot;</span>, <span class="dt">all.x=</span><span class="ot">TRUE</span>)</span>
+<span id="cb8-4"><a href="#cb8-4"></a> </span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co"># generate crude comorbidity summary for each patient</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="kw">kable</span>(</span>
+<span id="cb8-7"><a href="#cb8-7"></a>  <span class="kw">ddply</span>(cases_with_cm, .(id), </span>
+<span id="cb8-8"><a href="#cb8-8"></a>   <span class="cf">function</span>(x) { <span class="kw">data.frame</span>(<span class="kw">lapply</span>(x[,<span class="dv">3</span><span class="op">:</span><span class="kw">ncol</span>(x)], any)) }),</span>
+<span id="cb8-9"><a href="#cb8-9"></a>  <span class="dt">row.names=</span>F)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -303,7 +556,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <th align="left">dmcx</th>
 <th align="left">para</th>
 <th align="left">renal</th>
-<th align="left">tumor</th>
+<th align="center">tumor</th>
 <th align="left">modliver</th>
 <th align="left">mets</th>
 <th align="left">aids</th>
@@ -325,7 +578,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -345,7 +598,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -365,7 +618,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -385,7 +638,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -405,7 +658,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -413,8 +666,8 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 </tbody>
 </table>
 <p>The above process is encapsulated in a single function <code>generate_comorbidity_df</code>. This function also includes an optimization from Van Walraven that reduces <code>dmcx</code> to <code>dm</code> if the specific diabetic complication is separately coded.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">kable</span>(
-  <span class="kw">generate_comorbidity_df</span>(cases, <span class="dt">icd9mapfn=</span>icd9cm_charlson_quan))</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">kable</span>(</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="kw">generate_comorbidity_df</span>(cases, <span class="dt">icd9mapfn=</span>icd9cm_charlson_quan))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -432,7 +685,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <th align="left">dmcx</th>
 <th align="left">para</th>
 <th align="left">renal</th>
-<th align="left">tumor</th>
+<th align="center">tumor</th>
 <th align="left">modliver</th>
 <th align="left">mets</th>
 <th align="left">aids</th>
@@ -454,7 +707,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -474,7 +727,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -494,7 +747,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -514,7 +767,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -534,7 +787,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="center">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
 <td align="left">FALSE</td>
@@ -547,9 +800,9 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <div id="comorbidity-index" class="section level2">
 <h2>Comorbidity Index</h2>
 <p>It is common in the medical literature to see a set of comorbidities reduced to an index. When the Charlson Comorbidity Index was first published it had the following weights for each comorbidity:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(charlson_weights_orig)
-<span class="kw">kable</span>(
-  <span class="kw">t</span>(charlson_weights_orig))</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">data</span>(charlson_weights_orig)</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="kw">kable</span>(</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="kw">t</span>(charlson_weights_orig))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -566,7 +819,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <th align="left">dmcx</th>
 <th align="left">para</th>
 <th align="left">renal</th>
-<th align="left">tumor</th>
+<th align="center">tumor</th>
 <th align="left">modliver</th>
 <th align="left">mets</th>
 <th align="left">aids</th>
@@ -587,17 +840,18 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">2</td>
 <td align="left">2</td>
 <td align="left">2</td>
-<td align="left">2</td>
+<td align="center">2</td>
 <td align="left">3</td>
 <td align="left">6</td>
 <td align="left">6</td>
 </tr>
 </tbody>
 </table>
-<p>However, these weights have not stood the test of time. For example, the prognosis for HIV/AIDS has dramatically improved.<br />The medicalrisk package offers the revised Charlson weights developed by Schneeweiss<span class="citation">(Schneeweiss et al. 2003)</span>:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(charlson_weights)
-<span class="kw">kable</span>(
-  <span class="kw">t</span>(charlson_weights))</code></pre>
+<p>However, these weights have not stood the test of time. For example, the prognosis for HIV/AIDS has dramatically improved.<br />
+The medicalrisk package offers the revised Charlson weights developed by Schneeweiss<span class="citation">(Schneeweiss et al. 2003)</span>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">data</span>(charlson_weights)</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="kw">kable</span>(</span>
+<span id="cb11-3"><a href="#cb11-3"></a>  <span class="kw">t</span>(charlson_weights))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -614,7 +868,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <th align="left">dmcx</th>
 <th align="left">para</th>
 <th align="left">renal</th>
-<th align="left">tumor</th>
+<th align="center">tumor</th>
 <th align="left">modliver</th>
 <th align="left">mets</th>
 <th align="left">aids</th>
@@ -635,7 +889,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <td align="left">2</td>
 <td align="left">1</td>
 <td align="left">3</td>
-<td align="left">2</td>
+<td align="center">2</td>
 <td align="left">4</td>
 <td align="left">6</td>
 <td align="left">4</td>
@@ -643,8 +897,8 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 </tbody>
 </table>
 <p>The <code>generate_charlson_index_df</code> function will sum the weights for each patient to generate a final index:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">kable</span>(
-  <span class="kw">generate_charlson_index_df</span>(<span class="kw">generate_comorbidity_df</span>(cases)), <span class="dt">row.names=</span>F)</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">kable</span>(</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="kw">generate_charlson_index_df</span>(<span class="kw">generate_comorbidity_df</span>(cases)), <span class="dt">row.names=</span>F)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -686,7 +940,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <li>30 Day Length of Stay</li>
 </ul>
 <p>The author of the paper (Sessler) published SPSS code to perform the calculation. The medicalrisk implements the RSi calculation using a method based on the SPSS code.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ddply</span>(cases, .(id), function(x) { <span class="kw">icd9cm_sessler_rsi</span>(x$icd9cm) } )</code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">ddply</span>(cases, .(id), <span class="cf">function</span>(x) { <span class="kw">icd9cm_sessler_rsi</span>(x<span class="op">$</span>icd9cm) } )</span></code></pre></div>
 <pre><code>##   id rsi_1yrpod rsi_30dlos rsi_30dpod rsi_inhosp
 ## 1  1 -2.0186043  0.1560323  -1.699242 -1.8483037
 ## 2  2 -4.1423990  0.8927947  -3.802495 -3.5425015
@@ -698,20 +952,43 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
 <h2>Conclusion</h2>
 <p>The medicalrisk package can be used to generate risk data from ICD-9-CM codes in large datasets. The above discussion describes basic use of the package. There are some additional helper functions not described above which are included in the per function documentation.</p>
 <p>The aim of this package is to include future medical risk estimation procedures as they are published in the literature.</p>
-<div class="references">
-<h2>References</h2>
-<p>Agency for Healthcare Research &amp; Quality. 2013. “HCUP Comorbidity Software. Healthcare Cost and Utilization Project (HCUP). [Version 3.7].” <a href="http://www.hcup-us.ahrq.gov/toolssoftware/comorbidity/comorbidity.jsp" class="uri">http://www.hcup-us.ahrq.gov/toolssoftware/comorbidity/comorbidity.jsp</a>.</p>
-<p>Boersma, Eric, Miklos D Kertai, Olaf Schouten, Jeroen J Bax, Peter Noordzij, Ewout W Steyerberg, Arend F L Schinkel, et al. 2005. “Perioperative cardiovascular mortality in noncardiac surgery: validation of the Lee cardiac risk index.” <em>The American Journal of Medicine</em> 118 (10): 1134–41. doi:<a href="http://dx.doi.org/10.1016/j.amjmed.2005.01.064">10.1016/j.amjmed.2005.01.064</a>.</p>
-<p>Charlson, M E, P Pompei, K L Ales, and C R MacKenzie. 1987. “A new method of classifying prognostic comorbidity in longitudinal studies: development and validation.” <em>Journal of Chronic Diseases</em> 40 (5): 373–83. <a href="http://www.ncbi.nlm.nih.gov/pubmed/3558716" class="uri">http://www.ncbi.nlm.nih.gov/pubmed/3558716</a>.</p>
-<p>Deyo, R A, D C Cherkin, and M A Ciol. 1992. “Adapting a clinical comorbidity index for use with ICD-9-CM administrative databases.” <em>Journal of Clinical Epidemiology</em> 45 (6): 613–9. <a href="http://www.ncbi.nlm.nih.gov/pubmed/1607900" class="uri">http://www.ncbi.nlm.nih.gov/pubmed/1607900</a>.</p>
-<p>Lee, T H, E R Marcantonio, C M Mangione, E J Thomas, C A Polanczyk, E F Cook, D J Sugarbaker, et al. 1999. “Derivation and prospective validation of a simple index for prediction of cardiac risk of major noncardiac surgery.” <em>Circulation</em> 100 (10): 1043–9. <a href="http://www.ncbi.nlm.nih.gov/pubmed/10477528" class="uri">http://www.ncbi.nlm.nih.gov/pubmed/10477528</a>.</p>
-<p>McCormick, Patrick, and Thomas Joseph. 2015. <em>Medicalrisk: Medical Risk and Comorbidity Tools for ICD-9-CM Data</em>.</p>
-<p>Quan, Hude, Vijaya Sundararajan, Patricia Halfon, Andrew Fong, Bernard Burnand, Jean-Christophe Luthi, L Duncan Saunders, Cynthia A Beck, Thomas E Feasby, and William A Ghali. 2005. “Coding algorithms for defining comorbidities in ICD-9-CM and ICD-10 administrative data.” <em>Medical Care</em> 43 (11): 1130–9. <a href="http://www.ncbi.nlm.nih.gov/pubmed/16224307" class="uri">http://www.ncbi.nlm.nih.gov/pubmed/16224307</a>.</p>
-<p>Romano, P S, L L Roos, and J G Jollis. 1993. “Adapting a clinical comorbidity index for use with ICD-9-CM administrative data: differing perspectives.” <em>Journal of Clinical Epidemiology</em> 46 (10): 1075–9; discussion 1081–90. <a href="http://www.ncbi.nlm.nih.gov/pubmed/8410092" class="uri">http://www.ncbi.nlm.nih.gov/pubmed/8410092</a>.</p>
-<p>Schneeweiss, Sebastian, Philip S Wang, Jerry Avorn, and Robert J Glynn. 2003. “Improved comorbidity adjustment for predicting mortality in Medicare populations.” <em>Health Services Research</em> 38 (4): 1103–20. <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1360935/" class="uri">http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1360935/</a>.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references hanging-indent">
+<div id="ref-AgencyforHealthcareResearchQuality2013">
+<p>Agency for Healthcare Research &amp; Quality. 2013. “HCUP Comorbidity Software. Healthcare Cost and Utilization Project (HCUP). [Version 3.7].” <a href="http://www.hcup-us.ahrq.gov/toolssoftware/comorbidity/comorbidity.jsp">http://www.hcup-us.ahrq.gov/toolssoftware/comorbidity/comorbidity.jsp</a>.</p>
+</div>
+<div id="ref-Boersma2005">
+<p>Boersma, Eric, Miklos D Kertai, Olaf Schouten, Jeroen J Bax, Peter Noordzij, Ewout W Steyerberg, Arend F L Schinkel, et al. 2005. “Perioperative cardiovascular mortality in noncardiac surgery: validation of the Lee cardiac risk index.” <em>The American Journal of Medicine</em> 118 (10): 1134–41. <a href="https://doi.org/10.1016/j.amjmed.2005.01.064">https://doi.org/10.1016/j.amjmed.2005.01.064</a>.</p>
+</div>
+<div id="ref-Charlson1987">
+<p>Charlson, M E, P Pompei, K L Ales, and C R MacKenzie. 1987. “A new method of classifying prognostic comorbidity in longitudinal studies: development and validation.” <em>Journal of Chronic Diseases</em> 40 (5): 373–83. <a href="http://www.ncbi.nlm.nih.gov/pubmed/3558716">http://www.ncbi.nlm.nih.gov/pubmed/3558716</a>.</p>
+</div>
+<div id="ref-Deyo1992">
+<p>Deyo, R A, D C Cherkin, and M A Ciol. 1992. “Adapting a clinical comorbidity index for use with ICD-9-CM administrative databases.” <em>Journal of Clinical Epidemiology</em> 45 (6): 613–9. <a href="http://www.ncbi.nlm.nih.gov/pubmed/1607900">http://www.ncbi.nlm.nih.gov/pubmed/1607900</a>.</p>
+</div>
+<div id="ref-Lee1999">
+<p>Lee, T H, E R Marcantonio, C M Mangione, E J Thomas, C A Polanczyk, E F Cook, D J Sugarbaker, et al. 1999. “Derivation and prospective validation of a simple index for prediction of cardiac risk of major noncardiac surgery.” <em>Circulation</em> 100 (10): 1043–9. <a href="http://www.ncbi.nlm.nih.gov/pubmed/10477528">http://www.ncbi.nlm.nih.gov/pubmed/10477528</a>.</p>
+</div>
+<div id="ref-R-medicalrisk">
+<p>McCormick, Patrick, and Thomas Joseph. 2015. <em>Medicalrisk: Medical Risk and Comorbidity Tools for Icd-9-Cm Data</em>.</p>
+</div>
+<div id="ref-Quan2005">
+<p>Quan, Hude, Vijaya Sundararajan, Patricia Halfon, Andrew Fong, Bernard Burnand, Jean-Christophe Luthi, L Duncan Saunders, Cynthia A Beck, Thomas E Feasby, and William A Ghali. 2005. “Coding algorithms for defining comorbidities in ICD-9-CM and ICD-10 administrative data.” <em>Medical Care</em> 43 (11): 1130–9. <a href="http://www.ncbi.nlm.nih.gov/pubmed/16224307">http://www.ncbi.nlm.nih.gov/pubmed/16224307</a>.</p>
+</div>
+<div id="ref-Romano1993">
+<p>Romano, P S, L L Roos, and J G Jollis. 1993. “Adapting a clinical comorbidity index for use with ICD-9-CM administrative data: differing perspectives.” <em>Journal of Clinical Epidemiology</em> 46 (10): 1075–9; discussion 1081–90. <a href="http://www.ncbi.nlm.nih.gov/pubmed/8410092">http://www.ncbi.nlm.nih.gov/pubmed/8410092</a>.</p>
+</div>
+<div id="ref-Schneeweiss2003">
+<p>Schneeweiss, Sebastian, Philip S Wang, Jerry Avorn, and Robert J Glynn. 2003. “Improved comorbidity adjustment for predicting mortality in Medicare populations.” <em>Health Services Research</em> 38 (4): 1103–20. <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1360935/">http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1360935/</a>.</p>
+</div>
 </div>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
@@ -719,7 +996,7 @@ cases_with_cm &lt;-<span class="st"> </span><span class="kw">merge</span>(cases,
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

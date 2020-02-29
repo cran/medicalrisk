@@ -20,4 +20,3 @@ Sample results for validating RSI
 \seealso{
 \code{\link{rsi_sample_data}}, \code{\link{verify_sessler_rsi}}
 }
-

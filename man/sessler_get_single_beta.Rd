@@ -36,4 +36,3 @@ sessler_get_single_beta('D2720', rsi_beta_inhosp)
 # Also works with extra 0 on the end
 sessler_get_single_beta('D27200', rsi_beta_inhosp)
 }
-

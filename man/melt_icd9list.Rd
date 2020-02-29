@@ -4,8 +4,14 @@
 \alias{melt_icd9list}
 \title{Convert ICD-9-CM code list to dataframe}
 \usage{
-melt_icd9list(df, idvar = "id", icd9var = "icd9cm", .progress = "none",
-  .parallel = FALSE, .paropts = NULL)
+melt_icd9list(
+  df,
+  idvar = "id",
+  icd9var = "icd9cm",
+  .progress = "none",
+  .parallel = FALSE,
+  .paropts = NULL
+)
 }
 \arguments{
 \item{df}{a data frame with at least two columns, specified as \code{idvar}
@@ -29,7 +35,8 @@ a dataframe with two columns, \code{idvar} and \code{"icd9cm"}
 codes into a series of rows, one for each code.
 }
 \examples{
-cases <- data.frame(id=c(1,2), icd9list=c('162.4,070.30,155.0,401.9','996.52,E878.8,V45.86'))
+cases <- data.frame(id=c(1,2),
+    icd9list=c('162.4,070.30,155.0,401.9','996.52,E878.8,V45.86'),
+    stringsAsFactors=TRUE)
 melt_icd9list(cases, "id", "icd9list")
 }
-

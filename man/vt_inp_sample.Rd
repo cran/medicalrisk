@@ -27,4 +27,3 @@ max(vt_inp_sample$scu_days)
 \code{\link{icd9cm_elixhauser_ahrq37}}
 }
 \keyword{datasets}
-

@@ -10,43 +10,44 @@ icd9cm_elixhauser_ahrq37(icd9)
 \item{icd9}{a unique character vector of ICD-9-CM codes}
 }
 \value{
-A data frame, with ICD9 codes as row names and one logical column for each 
+A data frame, with ICD9 codes as row names and one logical column for each
 comorbidity in \code{\link{elixhauser_list}}
 }
 \description{
-Function makes a dataframe that links ICD-9-CM codes to the Elixhauser comorbidity 
+Function makes a dataframe that links ICD-9-CM codes to the Elixhauser comorbidity
 categories using the AHRQ v3.7 mapping.
 }
 \details{
 Uses regular expressions based on the file "comformat2012-2013.txt" from AHRQ.
 
-The Agency for Healthcare Research and Quality (AHRQ) has developed 
-Comorbidity Software as part of the Healthcare Cost and Utilization Project 
-(HCUP).  The software was developed to report on the comorbidity measures 
+The Agency for Healthcare Research and Quality (AHRQ) has developed
+Comorbidity Software as part of the Healthcare Cost and Utilization Project
+(HCUP).  The software was developed to report on the comorbidity measures
 reported by Elixhauser (1998).
 
-The AHRQ software has two parts, one that classifies ICD-9-CM codes by 
-comorbidity, and another that performs heuristics to eliminate duplicate 
-comorbidities and ignore comorbidities which are the primary reason for the 
+The AHRQ software has two parts, one that classifies ICD-9-CM codes by
+comorbidity, and another that performs heuristics to eliminate duplicate
+comorbidities and ignore comorbidities which are the primary reason for the
 hospital visit, as per the DRG.
 
-This table is a translation of the first part of the software, the 
+This table is a translation of the first part of the software, the
 classifier, as implemented in the SAS file \code{Comformat2012-2013.txt}.
 
-ICD-9-CM codes must have periods removed.  Diagnostic codes are prefixed with 
+ICD-9-CM codes must have periods removed.  Diagnostic codes are prefixed with
 'D' while procedure codes are prefixed with 'P'. So, diagnostic code
 \code{404.03} should be \code{"D40403"}.
 }
 \examples{
 # Identify Elixhauser categories
 cases <- data.frame(id=c(1,1,1,2,2,2),
-  icd9cm=c("D20206","D24220","D4439","D5064","DE8788","D40403"))
-cases_with_cm <- merge(cases, icd9cm_elixhauser_ahrq37(levels(cases$icd9cm)), 
+  icd9cm=c("D20206","D24220","D4439","D5064","DE8788","D40403"),
+  stringsAsFactors=TRUE)
+cases_with_cm <- merge(cases, icd9cm_elixhauser_ahrq37(levels(cases$icd9cm)),
   by.x="icd9cm", by.y="row.names", all.x=TRUE)
 
 # generate crude comorbidity summary for each patient
 library(plyr)
-ddply(cases_with_cm, .(id), 
+ddply(cases_with_cm, .(id),
   function(x) { data.frame(lapply(x[,3:ncol(x)], any)) })
 }
 \references{
@@ -56,4 +57,3 @@ ddply(cases_with_cm, .(id),
 \code{\link{icd9cm_charlson_deyo}}, \code{\link{icd9cm_charlson_romano}},
    \code{\link{icd9cm_charlson_quan}}, \code{\link{icd9cm_elixhauser_quan}}
 }
-

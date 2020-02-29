@@ -19,4 +19,3 @@ names(elixhauser_list)
 elixhauser_list
 }
 \keyword{datasets}
-

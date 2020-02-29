@@ -19,4 +19,3 @@ names(charlson_list)
 charlson_list
 }
 \keyword{datasets}
-

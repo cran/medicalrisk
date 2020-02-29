@@ -4,8 +4,12 @@
 \alias{merge_icd9_dx_and_procs}
 \title{Merge ICD-9-CM diagnostic and procedure codes}
 \usage{
-merge_icd9_dx_and_procs(dx_df, proc_df, icd9dxvar = "icd9cm",
-  icd9pvar = "icd9cm")
+merge_icd9_dx_and_procs(
+  dx_df,
+  proc_df,
+  icd9dxvar = "icd9cm",
+  icd9pvar = "icd9cm"
+)
 }
 \arguments{
 \item{dx_df}{a data frame with at least two columns, specified as \code{idvar}
@@ -27,10 +31,10 @@ Diagnostic codes are prefixed with 'D', while procedure codes are prefixed with 
 }
 \examples{
 cases <- data.frame(id=c(1,2),
-                    icd9dxlist=c('162.4,070.30,155.0,401.9','996.52,E878.8,V45.86'), 
-                    icd9plist=c('38.16','38.42'))
+                    icd9dxlist=c('162.4,070.30,155.0,401.9','996.52,E878.8,V45.86'),
+                    icd9plist=c('38.16','38.42'),
+                    stringsAsFactors=TRUE)
 dx_df <- melt_icd9list(cases, "id", "icd9dxlist")
 proc_df <- melt_icd9list(cases, "id", "icd9plist")
 merge_icd9_dx_and_procs(dx_df, proc_df)
 }
-

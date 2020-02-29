@@ -10,16 +10,13 @@ verify_sessler_rsi()
 Table of patients with scores >0.001 difference.
 }
 \description{
-Requires that "sample data rev2.csv" and "sample results rev2.csv" be available 
+Requires that "sample data rev2.csv" and "sample results rev2.csv" be available
 in datasrc directory
 }
 \examples{
 \dontrun{
 verify_sessler_rsi()
 }
-}
-\author{
-Patrick McCormick <patrick.mccormick@mountsinai.org>
 }
 \references{
 1. Sessler DI, Sigl JC, Manberg PJ, Kelley SD, Schubert A, Chamoun NG.
@@ -29,4 +26,6 @@ Patrick McCormick <patrick.mccormick@mountsinai.org>
 \seealso{
 rsi_sample_data, rsi_sample_results
 }
-
+\author{
+Patrick McCormick <patrick.mccormick@mountsinai.org>
+}

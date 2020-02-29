@@ -42,4 +42,3 @@ charlson_weights_orig["aids"]
 \code{\link{melt_icd9list}}
 }
 \keyword{datasets}
-
